@@ -1,0 +1,59 @@
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+.blinking-bar::after {
+  content: '';
+  position: absolute;
+  display: inline-block;
+  width: 2px;
+  height: 100%;
+  top: 0;
+  right: 0;
+  background-color: #fff;
+  animation: blink 1s step-start infinite;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@font-face {
+  font-family: 'font-letter';
+  src: url('./assets/fonts/Inconsolata_Condensed-SemiBold.ttf')
+    format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+.letters {
+  font-family: font-letter;
+}
+
+#inputTyping {
+  font-family: font-letter;
+  background: none;
+  color: #fff;
+  font-size: 40px;
+  outline: none;
+  border: 2px #fff solid;
+  padding: 1px 10px;
+  width: 400px;
+  text-align: center;
+}

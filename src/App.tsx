@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import './App.css';
 import { useEffect, useRef, useState } from 'react';
+let selectIndexWord = 0;
 
 function App() {
   const words = [
@@ -36,15 +37,24 @@ function App() {
     'roca',
   ];
 
-  const [word, setWord] = useState('');
+  const wordRefActive = useRef<HTMLInputElement>(null);
+  const inputTyping = useRef<HTMLInputElement>(null);
+  const [word, setWord] = useState<string[]>([]);
+  const [wordActive, setWordActive] = useState(word[0]);
+  const [type, setType] = useState('');
 
   useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * words.length);
-    setWord(words[randomIndex]);
-  }, []);
-
-  const [type, setType] = useState('');
-  const inputTyping = useRef<HTMLInputElement>(null);
+    if (word.length < 3) {
+      let randomIndex;
+      let newWord;
+      do {
+        randomIndex = Math.floor(Math.random() * words.length);
+        newWord = words[randomIndex];
+      } while (word.includes(newWord));
+      setWord((prevWord) => [...prevWord, newWord]);
+    }
+    setWordActive(word[selectIndexWord]);
+  }, [word]);
 
   useEffect(() => {
     const handleKeyDown = () => {
@@ -56,14 +66,21 @@ function App() {
     const handleInput = () => {
       if (inputTyping.current) {
         setType(inputTyping.current.value);
-        if (
-          inputTyping.current.value.length == word.length &&
-          inputTyping.current.value == word
-        ) {
-          setType('');
+        if (wordActive == inputTyping.current.value) {
+          selectIndexWord += 1;
+          setWordActive(word[selectIndexWord]);
           inputTyping.current.value = '';
-          const newRandomIndex = Math.floor(Math.random() * words.length);
-          setWord(words[newRandomIndex]);
+          setType('');
+          /*           wordRefActive.current?.remove();
+           */ if (word.length < words.length) {
+            let randomIndex;
+            let newWord;
+            do {
+              randomIndex = Math.floor(Math.random() * words.length);
+              newWord = words[randomIndex];
+            } while (word.includes(newWord));
+            setWord((prevWord) => [...prevWord, newWord]);
+          }
         }
       }
     };
@@ -79,7 +96,7 @@ function App() {
         inputTyping.current.removeEventListener('input', handleInput);
       }
     };
-  }, [word]);
+  }, [word, wordActive]);
   return (
     <>
       <input
@@ -89,29 +106,43 @@ function App() {
         autoCorrect="none"
         type="text"
         className="text-[#000]"
-        maxLength={word.length}
+        maxLength={wordActive?.length}
       />
-      <div
-        ref={null}
-        className={
-          'text-6xl w-max relative p-3 m-auto border-2 text-[#ffffff62] flex  ' +
-          clsx({
-            'border-green-700': word == type,
-            'border-red-500': word != type && type.length == word.length,
-          })
-        }
-      >
-        {word.split('').map((letters, index) => {
+      {selectIndexWord}
+      <div className="flex flex-wrap gap-2">
+        {word.map((wordSelect, index) => {
           return (
-            <span
-              className={clsx('p-3 letters box-border relative   ', {
-                'text-green-500': letters == type[index],
-                'text-red-500': letters != type[index] && index < type.length,
-                'blinking-bar': type.length == index + 1,
-              })}
+            <div
+              ref={wordSelect == wordActive ? wordRefActive : null}
+              className={
+                'text-6xl w-max relative p-3 m-auto border-2 border-red-200 text-[#ffffff62] flex  ' +
+                (wordSelect == wordActive
+                  ? clsx({
+                      'border-red-500':
+                        wordSelect != type && type.length == wordSelect.length,
+                      'shadow-active ': wordSelect == wordActive,
+                    })
+                  : '')
+              }
             >
-              {letters}
-            </span>
+              {wordSelect.split('').map((letters, index) => (
+                <span
+                  className={
+                    'p-3 letters box-border relative ' +
+                    (wordSelect == wordActive
+                      ? clsx({
+                          'text-green-500': letters == type[index],
+                          'text-red-500':
+                            letters != type[index] && index < type.length,
+                          'blinking-bar': type.length == index + 1,
+                        })
+                      : '')
+                  }
+                >
+                  {letters}
+                </span>
+              ))}
+            </div>
           );
         })}
       </div>

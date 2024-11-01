@@ -1,6 +1,8 @@
-import clsx from 'clsx';
 import './App.css';
 import { useEffect, useRef, useState } from 'react';
+import Enemies from './components/enemies';
+import AreaAttack from './components/areaAttack';
+import bgPattern from './assets/img/background-pattern.jfif';
 let selectIndexWord = 0;
 
 function App() {
@@ -41,25 +43,104 @@ function App() {
   const inputTyping = useRef<HTMLInputElement>(null);
   const [word, setWord] = useState<string[]>([]);
   const [wordActive, setWordActive] = useState(word[0]);
+  const [score, setScore] = useState(0);
   const [type, setType] = useState('');
+  const [delay, setDelay] = useState(3000);
+  const [lifes, setLifes] = useState(3);
+
+  const areaAttackRef = useRef<HTMLInputElement>(null);
+  const [isOverlapping, setIsOverlapping] = useState(false);
 
   useEffect(() => {
-    if (word.length < 3) {
-      let randomIndex;
-      let newWord;
-      do {
-        randomIndex = Math.floor(Math.random() * words.length);
-        newWord = words[randomIndex];
-      } while (word.includes(newWord));
-      setWord((prevWord) => [...prevWord, newWord]);
-    }
-    setWordActive(word[selectIndexWord]);
-  }, [word]);
+    if (isOverlapping) {
+      selectIndexWord += 1;
 
+      setWordActive(word[selectIndexWord]);
+      if (inputTyping.current) inputTyping.current.value = '';
+      setType('');
+      wordRefActive.current?.remove();
+      setIsOverlapping(false);
+      setLifes(lifes - 1);
+      if (lifes - 1 <= 0) alert('perdiste con: ' + score);
+    }
+  }, [isOverlapping, inputTyping]);
+  useEffect(() => {
+    const checkCollision = () => {
+      if (areaAttackRef.current && wordRefActive.current) {
+        const rectA = areaAttackRef.current.getBoundingClientRect();
+        const rectB = wordRefActive.current.getBoundingClientRect();
+
+        const isOverlapping =
+          rectA.left < rectB.right &&
+          rectA.right > rectB.left &&
+          rectA.top < rectB.bottom &&
+          rectA.bottom > rectB.top;
+        setIsOverlapping(isOverlapping);
+      }
+    };
+
+    const intervalId = setInterval(checkCollision, 50);
+
+    return () => clearInterval(intervalId);
+  }, []);
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (word.length < words.length) {
+        let randomNumber;
+        let newWord;
+
+        do {
+          randomNumber = Math.floor(Math.random() * words.length);
+          newWord = words[randomNumber];
+        } while (word.includes(newWord));
+
+        setWord((prevWord) => {
+          if (!prevWord.includes(newWord)) {
+            return [...prevWord, newWord];
+          }
+          return prevWord;
+        });
+        if (word.length >= 3) {
+          const delayRandom = Math.random() * (3 - 0.5) + 0.5;
+          setDelay(delayRandom * 1000);
+        }
+      }
+    }, delay);
+    return () => clearInterval(intervalId);
+  }, [word, delay]);
+  useEffect(() => {
+    if (word.length < 3) {
+      let randomNumber;
+      let newWord;
+
+      do {
+        randomNumber = Math.floor(Math.random() * words.length);
+        newWord = words[randomNumber];
+      } while (word.includes(newWord));
+
+      setWord((prevWord) => {
+        if (!prevWord.includes(newWord)) {
+          return [...prevWord, newWord];
+        }
+        return prevWord;
+      });
+    }
+  }, [word, words]);
+  useEffect(() => {
+    if (word.length > 0) {
+      setWordActive(word[selectIndexWord]);
+    }
+  }, [word, selectIndexWord]);
   useEffect(() => {
     const handleKeyDown = () => {
       if (inputTyping.current) {
         inputTyping.current.focus();
+        /* 
+        if (wordRefActive.current && wordActive.startsWith(type)) {
+          wordRefActive.current.classList.remove('shake');
+          void wordRefActive.current.offsetWidth;
+          wordRefActive.current.classList.add('shake');
+        } */
       }
     };
 
@@ -68,19 +149,18 @@ function App() {
         setType(inputTyping.current.value);
         if (wordActive == inputTyping.current.value) {
           selectIndexWord += 1;
+          const wordLength = wordActive.length;
+          if (wordLength <= 3) {
+            setScore((score) => (score += 300));
+          } else if (wordLength > 3 && wordLength <= 6) {
+            setScore((score) => (score += 550));
+          } else {
+            setScore((score) => (score += 700));
+          }
           setWordActive(word[selectIndexWord]);
           inputTyping.current.value = '';
           setType('');
-          /*           wordRefActive.current?.remove();
-           */ if (word.length < words.length) {
-            let randomIndex;
-            let newWord;
-            do {
-              randomIndex = Math.floor(Math.random() * words.length);
-              newWord = words[randomIndex];
-            } while (word.includes(newWord));
-            setWord((prevWord) => [...prevWord, newWord]);
-          }
+          wordRefActive.current?.remove();
         }
       }
     };
@@ -96,57 +176,40 @@ function App() {
         inputTyping.current.removeEventListener('input', handleInput);
       }
     };
-  }, [word, wordActive]);
+  }, [word, wordActive, type]);
+
   return (
-    <>
-      <input
-        ref={inputTyping}
-        id="inputTyping"
-        autoComplete="none"
-        autoCorrect="none"
-        type="text"
-        className="text-[#000]"
-        maxLength={wordActive?.length}
-      />
-      {selectIndexWord}
-      <div className="flex flex-wrap gap-2">
+    <div className="flex w-full">
+      <AreaAttack lifes={lifes} ref={areaAttackRef} score={score}>
+        <input
+          ref={inputTyping}
+          id="inputTyping"
+          autoComplete="none"
+          autoCorrect="none"
+          type="text"
+          className="text-[#000]"
+          maxLength={wordActive?.length}
+        />
+      </AreaAttack>
+      <div
+        className="relative basis-4/5 overflow-x-hidden "
+        style={{ background: `URL(${bgPattern})` }}
+      >
         {word.map((wordSelect, index) => {
           return (
-            <div
-              ref={wordSelect == wordActive ? wordRefActive : null}
-              className={
-                'text-6xl w-max relative p-3 m-auto border-2 border-red-200 text-[#ffffff62] flex  ' +
-                (wordSelect == wordActive
-                  ? clsx({
-                      'border-red-500':
-                        wordSelect != type && type.length == wordSelect.length,
-                      'shadow-active ': wordSelect == wordActive,
-                    })
-                  : '')
-              }
-            >
-              {wordSelect.split('').map((letters, index) => (
-                <span
-                  className={
-                    'p-3 letters box-border relative ' +
-                    (wordSelect == wordActive
-                      ? clsx({
-                          'text-green-500': letters == type[index],
-                          'text-red-500':
-                            letters != type[index] && index < type.length,
-                          'blinking-bar': type.length == index + 1,
-                        })
-                      : '')
-                  }
-                >
-                  {letters}
-                </span>
-              ))}
-            </div>
+            <Enemies
+              key={wordSelect}
+              word={wordSelect}
+              wordRefIsActive={wordActive == wordSelect}
+              type={type}
+              ref={wordActive == wordSelect ? wordRefActive : null}
+              index={index}
+            ></Enemies>
           );
         })}
+        <div className="flex flex-wrap gap-2"></div>
       </div>
-    </>
+    </div>
   );
 }
 

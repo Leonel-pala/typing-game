@@ -50,10 +50,78 @@
   font-family: font-letter;
   background: none;
   color: #fff;
-  font-size: 40px;
+  font-size: 30px;
   outline: none;
   border: 2px #fff solid;
   padding: 1px 10px;
-  width: 400px;
+  width: 100%;
   text-align: center;
+  box-sizing: border-box;
+}
+@keyframes shake {
+  0%,
+  100% {
+    transform: rotateZ(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: rotateZ(2deg);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: rotateZ(-2deg);
+  }
+}
+@keyframes kill {
+  0% {
+    transform: scaleY(100%);
+  }
+  100% {
+    transform: scaleY(0);
+  }
+}
+
+.kill {
+  animation: kill 0.5s ease-in-out;
+}
+
+.word {
+  position: absolute;
+  display: flex;
+  left: 100%;
+  font-size: 50px;
+  width: max-content;
+  padding: 0.75rem;
+  margin: auto;
+  background: #1a1a1a;
+  border: 2px solid #ffffff00;
+  color: #575757;
+  box-shadow: 0 0px 10px 0px #ffffff00;
+}
+
+.wordSelect {
+  opacity: 1;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0px 10px 0px #ffffff;
+  color: #717171;
+  background: #313131;
+}
+.diagonal-stripes {
+  background: repeating-linear-gradient(
+    45deg,
+    yellow,
+    yellow 30px,
+    black 30px,
+    black 60px
+  );
+}
+
+.vertical-text {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
 }

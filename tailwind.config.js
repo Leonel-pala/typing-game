@@ -6,6 +6,15 @@ export default {
       boxShadow: {
         active: '0 0px 10px 0px #fff',
       },
+      keyframes: {
+        slideInLeft: {
+          '0%': { left: '100%' },
+          '100%': { left: '-10%' },
+        },
+      },
+      animation: {
+        slideInLeft: 'slideInLeft 3s linear forwards',
+      },
     },
   },
   plugins: [],

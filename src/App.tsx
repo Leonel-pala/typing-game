@@ -48,22 +48,42 @@ function App() {
   const [delay, setDelay] = useState(3000);
   const [lifes, setLifes] = useState(3);
 
+  const [isGameOver, setIsGameOver] = useState(false);
+  const [isWinner, setIsWinner] = useState(false);
   const areaAttackRef = useRef<HTMLInputElement>(null);
   const [isOverlapping, setIsOverlapping] = useState(false);
 
+  function gameOver() {
+    setIsGameOver(true);
+  }
+  function tryAgain() {
+    setIsWinner(false);
+    setIsGameOver(false);
+    setWord([]);
+    setWordActive(word[0]);
+    setDelay(3000);
+    setType('');
+    selectIndexWord = 0;
+    setLifes(3);
+    setScore(0);
+  }
   useEffect(() => {
-    if (isOverlapping) {
+    if (isOverlapping && selectIndexWord < word.length) {
+      if (lifes > 1 && word.length == words.length) {
+        setIsWinner(true);
+      }
+      if (wordRefActive.current) wordRefActive.current.style.display = 'none';
       selectIndexWord += 1;
-
       setWordActive(word[selectIndexWord]);
       if (inputTyping.current) inputTyping.current.value = '';
       setType('');
-      wordRefActive.current?.remove();
       setIsOverlapping(false);
       setLifes(lifes - 1);
-      if (lifes - 1 <= 0) alert('perdiste con: ' + score);
+
+      if (lifes - 1 <= 0) gameOver();
     }
-  }, [isOverlapping, inputTyping]);
+  }, [isOverlapping, selectIndexWord, inputTyping, word, lifes]);
+
   useEffect(() => {
     const checkCollision = () => {
       if (areaAttackRef.current && wordRefActive.current) {
@@ -79,13 +99,14 @@ function App() {
       }
     };
 
-    const intervalId = setInterval(checkCollision, 50);
+    const intervalId = setInterval(checkCollision, 100);
 
     return () => clearInterval(intervalId);
-  }, []);
+  }, [word]);
+
   useEffect(() => {
     const intervalId = setInterval(() => {
-      if (word.length < words.length) {
+      if (word.length < words.length && !isGameOver) {
         let randomNumber;
         let newWord;
 
@@ -107,9 +128,9 @@ function App() {
       }
     }, delay);
     return () => clearInterval(intervalId);
-  }, [word, delay]);
+  }, [word, delay, selectIndexWord, isGameOver]);
   useEffect(() => {
-    if (word.length < 3) {
+    if (word.length < 3 && !isGameOver) {
       let randomNumber;
       let newWord;
 
@@ -125,12 +146,12 @@ function App() {
         return prevWord;
       });
     }
-  }, [word, words]);
+  }, [word, words, isGameOver]);
   useEffect(() => {
-    if (word.length > 0) {
+    if (word.length > 0 && !isGameOver) {
       setWordActive(word[selectIndexWord]);
     }
-  }, [word, selectIndexWord]);
+  }, [word, selectIndexWord, isGameOver]);
   useEffect(() => {
     const handleKeyDown = () => {
       if (inputTyping.current) {
@@ -158,9 +179,19 @@ function App() {
             setScore((score) => (score += 700));
           }
           setWordActive(word[selectIndexWord]);
-          inputTyping.current.value = '';
           setType('');
-          wordRefActive.current?.remove();
+
+          if (wordRefActive.current)
+            wordRefActive.current.style.display = 'none';
+          if (
+            inputTyping.current.value == word[word.length - 1] &&
+            word[word.length - 1] == wordActive &&
+            word.length == words.length
+          ) {
+            console.log('hola');
+            setIsWinner(true);
+          }
+          inputTyping.current.value = '';
         }
       }
     };
@@ -180,7 +211,12 @@ function App() {
 
   return (
     <div className="flex w-full">
-      <AreaAttack lifes={lifes} ref={areaAttackRef} score={score}>
+      <AreaAttack
+        lifes={lifes}
+        ref={areaAttackRef}
+        score={score}
+        word={word.length}
+      >
         <input
           ref={inputTyping}
           id="inputTyping"
@@ -188,7 +224,7 @@ function App() {
           autoCorrect="none"
           type="text"
           className="text-[#000]"
-          maxLength={wordActive?.length}
+          maxLength={isGameOver ? 0 : wordActive?.length}
         />
       </AreaAttack>
       <div
@@ -198,17 +234,49 @@ function App() {
         {word.map((wordSelect, index) => {
           return (
             <Enemies
-              key={wordSelect}
+              key={index}
               word={wordSelect}
               wordRefIsActive={wordActive == wordSelect}
               type={type}
               ref={wordActive == wordSelect ? wordRefActive : null}
               index={index}
+              paused={isGameOver}
             ></Enemies>
           );
         })}
-        <div className="flex flex-wrap gap-2"></div>
       </div>
+      {isGameOver ? (
+        <div className="absolute p-5 text-2xl bg-[#000000a9] left-0 top-0 w-screen h-screen z-[900] flex justify-center items-center">
+          <div className="absolute p-5 text-2xl  bg-red-600 flex flex-col ">
+            <span>PERDISTE</span>
+            <span>Puntaje total: {score}</span>
+            <button
+              className="border-2 border-white"
+              onClick={() => {
+                tryAgain();
+              }}
+            >
+              Otra vez
+            </button>
+          </div>
+        </div>
+      ) : null}
+      {isWinner ? (
+        <div className="absolute p-5 text-2xl bg-[#000000a9] left-0 top-0 w-screen h-screen z-[900] flex justify-center items-center">
+          <div className="absolute p-5 text-2xl  bg-green-600 flex flex-col ">
+            <span>Ganaste</span>
+            <span>Puntaje total: {score}</span>
+            <button
+              className="border-2 border-white"
+              onClick={() => {
+                tryAgain();
+              }}
+            >
+              jugar otra vez
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

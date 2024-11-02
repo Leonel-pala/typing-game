@@ -6,10 +6,11 @@ interface EnemiesProps {
   wordRefIsActive: boolean;
   type: string;
   index: number;
+  paused: boolean;
 }
 
 const Enemies = forwardRef<HTMLDivElement, EnemiesProps>(
-  ({ word, wordRefIsActive, type, index }, ref) => {
+  ({ word, wordRefIsActive, type, index, paused }, ref) => {
     const [coordY, setCoordY] = useState(0);
     const lastTwoNumbers = useRef<number[]>([]);
 
@@ -32,13 +33,14 @@ const Enemies = forwardRef<HTMLDivElement, EnemiesProps>(
       <div
         ref={ref}
         className={
-          `animate-slideInLeft left-full text-6xl w-max p-3 m-auto border-2 text-[#ffffff62] flex absolute word ` +
+          `left-[110%] text-6xl w-max p-3 m-auto border-2 text-[#ffffff62] flex absolute word  ` +
           (wordRefIsActive
             ? clsx({
                 'border-red-500': word !== type && type.length === word.length,
                 wordSelect: wordRefIsActive,
               })
-            : '')
+            : '') +
+          (paused ? ' hidden opacity-0 ' : ' animate-slideInLeft')
         }
         style={{
           animationDelay: index < 3 ? `${index * 1}s` : '0s',

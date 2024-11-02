@@ -8,7 +8,7 @@ export default {
       },
       keyframes: {
         slideInLeft: {
-          '0%': { left: '100%' },
+          '0%': { left: '110%' },
           '100%': { left: '-10%' },
         },
       },

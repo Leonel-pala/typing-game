@@ -211,12 +211,7 @@ function App() {
 
   return (
     <div className="flex w-full">
-      <AreaAttack
-        lifes={lifes}
-        ref={areaAttackRef}
-        score={score}
-        word={word.length}
-      >
+      <AreaAttack lifes={lifes} ref={areaAttackRef} score={score}>
         <input
           ref={inputTyping}
           id="inputTyping"

@@ -1,39 +1,50 @@
 import { ReactNode, forwardRef } from 'react';
 import FaceCam from './faceCam';
+import heart from '../assets/img/heart.png';
+import heartBorder from '../assets/img/heart-border.png';
 
 interface AreaAttackProps {
   children: ReactNode;
   score: number;
   lifes: number;
-  word: number;
 }
 
 const AreaAttack = forwardRef<HTMLDivElement, AreaAttackProps>(
-  ({ children, score, lifes, word }, ref) => {
+  ({ children, score, lifes }, ref) => {
+    const ScoreDisplay = () => {
+      const paddedScore = '0'.repeat(6 - score.toString().length) + score;
+
+      return (
+        <div className="bg-zinc-900 text-center px-5 py-2 text-4xl">
+          {paddedScore}
+        </div>
+      );
+    };
     return (
       <div
         ref={ref}
-        className="basis-1/5 relative bg-[#372772] w-96 h-screen p-5 box-border flex flex-col gap-4"
+        className="basis-1/5 relative bg-[#201642] w-96 h-screen p-5 box-border flex flex-col gap-2"
       >
-        <p>Puntaje: {score}</p>
+        <h2 className="text-xl">Puntaje:</h2>
+        <ScoreDisplay></ScoreDisplay>
         <FaceCam />
         {children}
-        <div className="flex justify-around bg-zinc-900 py-2">
-          <div
-            className={`  w-10 aspect-square  rounded-full ${
-              lifes >= 1 ? 'bg-red-600' : 'bg-red-200'
-            }`}
-          ></div>
-          <div
-            className={`  w-10 aspect-square  rounded-full ${
-              lifes >= 2 ? 'bg-red-600' : 'bg-red-200'
-            }`}
-          ></div>
-          <div
-            className={`  w-10 aspect-square  rounded-full ${
-              lifes >= 3 ? 'bg-red-600' : 'bg-red-200'
-            }`}
-          ></div>
+        <div className="flex w-max gap-1 px-1 mx-auto bg-zinc-900 py-2">
+          <img
+            className="w-10 aspect-square"
+            src={1 <= lifes ? heart : heartBorder}
+            alt="heart"
+          />
+          <img
+            className="w-10 aspect-square"
+            src={2 <= lifes ? heart : heartBorder}
+            alt="heart"
+          />
+          <img
+            className="w-10 aspect-square"
+            src={3 <= lifes ? heart : heartBorder}
+            alt="heart"
+          />
         </div>
         <div className="diagonal-stripes absolute w-16 left-full top-0 z-[1] h-full"></div>
       </div>
